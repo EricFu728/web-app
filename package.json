@@ -17,6 +17,8 @@
     "deploy": "gh-pages -d build"
   },
   "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-react": "^6.24.1",
     "gh-pages": "^1.2.0"
   }
 }
