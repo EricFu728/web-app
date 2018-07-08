@@ -10,6 +10,7 @@ import {
   Card
 } from 'semantic-ui-react'
 import moment from 'moment'
+import {CSVLink} from 'react-csv'
 
 class App extends Component {
   constructor(props) {
@@ -92,9 +93,18 @@ class App extends Component {
     }
     this.handleChange = this.handleChange.bind(this)
   }
+  tick() {
+    this.setState(prevState => ({
+      now: moment().format(moment.HTML5_FMT.DATETIME_LOCAL_MS),
+    }));
+  }
 
   componentDidMount() {
-    
+    this.interval = setInterval(() => this.tick());
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.interval);
   }
 
 
@@ -180,11 +190,9 @@ class App extends Component {
           name='count'
           onChange={this.handleChange}
         />
-        <Button.Group>
           <Button positive size='huge'>Start</Button>
           <Button negative size='huge'>Stop</Button>
           <Button size='huge'>Reset</Button>
-        </Button.Group>
       </Form>
 
       </Segment>
@@ -197,7 +205,7 @@ class App extends Component {
       <Segment>
       <Card.Group itemsPerRow={4}>
         {outputs.map((item, index) => (
-          <Card>
+          <Card key={index}>
             <Card.Content>
             <Card.Header>
               <Label color={item.color} ribbon='right'>
@@ -215,11 +223,13 @@ class App extends Component {
   }
 
   render() {
-    console.log(this.state)
+    const csvData = this.state.outputs.map((item, key) => {
+      return [item.number, item.time, item.color]
+    })
     return (
       <Container style={{marginTop: '50px', marginBottom: '50px'}}>
+      <CSVLink data={csvData} >Download data</CSVLink>
         {this.renderTimeSetting()}
-        
           <Grid columns={2}>
             <Grid.Column>
             {this.renderSettings()}
