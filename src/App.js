@@ -11,14 +11,15 @@ import {
 } from 'semantic-ui-react'
 import moment from 'moment'
 import {CSVLink} from 'react-csv'
+import _ from 'lodash'
 
 class App extends Component {
   constructor(props) {
     super(props)
     this.state = {
       time: moment().format(moment.HTML5_FMT.DATETIME_LOCAL_MS),
-      time1: moment().add(6, 'h').format(moment.HTML5_FMT.DATETIME_LOCAL_MS),
-      time2: moment().add(12, 'h').format(moment.HTML5_FMT.DATETIME_LOCAL_MS),
+      time1: moment().add(4, 'h').format(moment.HTML5_FMT.DATETIME_LOCAL_MS),
+      time2: moment().add(8, 'h').format(moment.HTML5_FMT.DATETIME_LOCAL_MS),
       now: moment().format(moment.HTML5_FMT.DATETIME_LOCAL_MS),
       factor: 1,
       minVol: 0.01,
@@ -29,74 +30,29 @@ class App extends Component {
       count: 6,
       status: false,
       outputs:[
-        {
-          number: '0.6',
-          time: '2018/06/01 08:09:21.876',
-          color: 'red'
-        },
-        {
-          number: '0.87',
-          time: '2018/11/07 04:54:53.441',
-          color: 'green'
-        },
-        {
-          number: '0.65',
-          time: '2018/03/21 18:23:22.346',
-          color: 'red'
-        },
-        {
-          number: '0.6',
-          time: '2018/06/01 08:09:21.876',
-          color: 'red'
-        },
-        {
-          number: '0.87',
-          time: '2018/11/07 04:54:53.441',
-          color: 'green'
-        },
-        {
-          number: '0.65',
-          time: '2018/03/21 18:23:22.346',
-          color: 'red'
-        },
-        {
-          number: '0.6',
-          time: '2018/06/01 08:09:21.876',
-          color: 'red'
-        },
-        {
-          number: '0.87',
-          time: '2018/11/07 04:54:53.441',
-          color: 'green'
-        },
-        {
-          number: '0.65',
-          time: '2018/03/21 18:23:22.346',
-          color: 'red'
-        },
-        {
-          number: '0.6',
-          time: '2018/06/01 08:09:21.876',
-          color: 'red'
-        },
-        {
-          number: '0.87',
-          time: '2018/11/07 04:54:53.441',
-          color: 'green'
-        },
-        {
-          number: '0.65',
-          time: '2018/03/21 18:23:22.346',
-          color: 'red'
-        },
+        
       ]
     }
     this.handleChange = this.handleChange.bind(this)
+    this.handleDataGenarate = this.handleDataGenarate.bind(this)
+    this.handleReset = this.handleReset.bind(this)
+    this.handleStop = this.handleStop.bind(this)
   }
   tick() {
     this.setState(prevState => ({
       now: moment().format(moment.HTML5_FMT.DATETIME_LOCAL_MS),
     }));
+    if (this.state.status === true) {
+      let newData = []
+      this.state.outputs.map((item, index) => {
+        let newItem = Object.assign({}, this.state.outputs[index])
+        if (item.time <= this.state.now && item.active === false) {
+          newItem.active = true
+        }
+        newData.push(newItem)
+      })
+      this.setState({outputs: newData})
+    }
   }
 
   componentDidMount() {
@@ -112,6 +68,37 @@ class App extends Component {
     this.setState({
       [name]: value
     })
+  }
+
+  handleDataGenarate = () => {
+    const {count, minVol, maxVol, factor, time, time1} = this.state
+    let data = []
+    let diff = moment(time1).diff(moment(time), 'hours') * factor
+    let diffMinutes = _.ceil(diff * 60)
+    for(let i = 0; i < count; i++) {
+      let item = {
+        number: _.ceil(_.random(minVol, maxVol), 2),
+        time: moment(_.random(moment(time).valueOf(), moment(time).add(diffMinutes, 'minutes').valueOf())).format(moment.HTML5_FMT.DATETIME_LOCAL_MS),
+        color: _.random(1,2)%2 ? 'red' : 'green',
+        active: false
+      }
+      data.push(item)
+    }
+    this.setState({
+      outputs: data,
+      status: true
+    })
+  }
+
+  handleReset = () => {
+    this.setState({
+      outputs: [],
+      status: false
+    })
+  }
+  
+  handleStop = () => {
+    this.setState({status: false})
   }
 
   renderTimeSetting() {
@@ -183,16 +170,17 @@ class App extends Component {
         <Form.Input 
           type='number'
           step="1"  
+          min="1"
           fluid 
           label='Results' 
-          placeholder='0.01' 
+          placeholder='1' 
           value={count} 
           name='count'
           onChange={this.handleChange}
         />
-          <Button positive size='huge'>Start</Button>
-          <Button negative size='huge'>Stop</Button>
-          <Button size='huge'>Reset</Button>
+          <Button positive size='huge' onClick={this.handleDataGenarate}>Start</Button>
+          <Button negative size='huge' onClick={this.handleStop}>Stop</Button>
+          <Button size='huge' onClick={this.handleReset} >Reset</Button>
       </Form>
 
       </Segment>
@@ -205,7 +193,7 @@ class App extends Component {
       <Segment>
       <Card.Group itemsPerRow={4}>
         {outputs.map((item, index) => (
-          <Card key={index}>
+          <Card key={index} style= {item.active ? {backgroundColor: 'teal'} : {}}>
             <Card.Content>
             <Card.Header>
               <Label color={item.color} ribbon='right'>
