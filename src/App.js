@@ -93,7 +93,10 @@ class App extends Component {
   handleReset = () => {
     this.setState({
       outputs: [],
-      status: false
+      status: false,
+      time: moment().format(moment.HTML5_FMT.DATETIME_LOCAL_MS),
+      time1: moment().add(4, 'h').format(moment.HTML5_FMT.DATETIME_LOCAL_MS),
+      time2: moment().add(8, 'h').format(moment.HTML5_FMT.DATETIME_LOCAL_MS)
     })
   }
   
@@ -201,7 +204,7 @@ class App extends Component {
               </Label>
               <Header>{item.number}</Header>
             </Card.Header>
-            <Card.Meta>{item.time}</Card.Meta>
+            <Card.Description>{item.time}</Card.Description>
             </Card.Content>
           </Card>
         ))}
